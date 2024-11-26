@@ -1,4 +1,3 @@
-
 from playwright.sync_api import Page, expect
 import pytest
 
@@ -54,3 +53,25 @@ def test_cart(page: Page) -> None:
     page.get_by_role('button', name="Remove").click()
     expect(page.locator(".shopping_cart_link")).to_be_empty()
     
+def test_sorting(page: Page) -> None:
+    sort_selector = page.locator("[data-test=\"product-sort-container\"]")
+    sort_selector.select_option("lohi")
+    first_item = page.locator(".inventory_item_name").first
+    expect(first_item).to_have_text("Sauce Labs Onesie")
+    sort_selector.select_option("hilo")
+    first_item = page.locator(".inventory_item_name").first
+    expect(first_item).to_have_text("Sauce Labs Fleece Jacket")
+
+def test_invalid_login(page: Page) -> None:
+    page.goto("https://www.saucedemo.com/")
+    page.get_by_placeholder("username").fill("invalid_user")
+    page.get_by_placeholder("Password").fill("wrong_password")
+    page.locator("[data-test=\"login-button\"]").click()
+    expect(page.locator("[data-test=\"error\"]")).to_have_text("Epic sadface: Username and password do not match any user in this service")
+
+def test_product_details(page: Page) -> None:
+    inventory_item_backpack = page.locator(".inventory_item_name", has_text="Sauce Labs Backpack")
+    expect(inventory_item_backpack).to_be_visible()
+    inventory_item_backpack.click()
+    expect(page.locator("[data-test=\"inventory-item-name\"]")).to_have_text("Sauce Labs Backpack")
+    expect(page.locator(".inventory_details_price")).to_have_text("$29.99")
